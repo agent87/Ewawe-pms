@@ -56,6 +56,7 @@ def alpr(img):
     resp_json = response.json()
     Plate = str(resp_json['results'][0]['plate']).upper()
     Vehicle = str(resp_json['results'][0]['vehicle']['type'])
+    st.subheader("Bellow are the results of the prediction")
     st.text("Plate Number: {}".format(Plate))
     st.text('Vehicle Type: {}'.format(Vehicle))
 
@@ -86,7 +87,6 @@ def main():
             #tfile.write(f.read())
             st.write('Please wait for the magic to happen! This may take up to a minute.')
             alpr(img)
-            st.subheader("Bellow are the results of the prediction")
     elif AppMode == SIDEBAR_OPTION_MEET_TEAM:
         st.title("Meet the team behind the system")
         first_column, second_column, third_column= st.beta_columns(3)
