@@ -1,1 +1,1 @@
-web: sh setup.sh && streamlit run Ewawe.py
+web: sh setup.sh && streamlit run ewawe.py
