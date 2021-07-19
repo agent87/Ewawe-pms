@@ -1,7 +1,12 @@
 import streamlit as st
 import time
 import requests
+import psycopg2
+import uuid
+import datetime
 
+conn = psycopg2.connect(database="d7pibsdo79jogi",host="ec2-52-86-25-51.compute-1.amazonaws.com",port=5432,user="cccbiffnldwfkf",password="605444bcd83d702da6e7f56cb2fba0ebb74fb3db14dc5a0c1555bbfa75a357a1")
+cur = conn.cursor()
 
 
 SIDEBAR_OPTION_PROJECT_INFO = "Show Project Info"
@@ -47,6 +52,35 @@ def upload_progress():
     progress_bar.empty() 
     status_text.empty()
 
+
+
+def cost(elapsed):
+    #if elapsed is between 0 to 30 then return the cost of the plate
+    if elapsed > 0 and elapsed <= 30:
+        return 200
+    if elapsed > 30 and elapsed <= 60:
+        return 300
+    if elapsed > 60 and elapsed <= 90:
+        return 500
+    if elapsed > 90 and elapsed <= 120:
+        return 500
+    
+
+def parking_log(Plate):
+    #Check if the Plate is already in the database & Parked
+    cur.execute(f""" select * from public."ParkingLog" where "CustomerId" = 'EGPCI-AAA01-0001' and "PlateNum" = '{Plate}' and "Status" = 'Parked';""")
+    query = cur.fetchall()
+    if query:
+        elapsed = (datetime.datetime.now()- datetime.datetime.combine(query[0][2], query[0][5])) /60
+        #update Checkoutimte, status, cost  and duration
+        cur.execute(f""" UPDATE public."ParkingLog" SET "CheckoutTime"='{time.strftime("%H:%M:%S", time.localtime())}', "ExitGateId"='Main', "Status"='Exited', "Duration"={int(str(elapsed.seconds))}, "Cash"={int(str(cost(int(elapsed.seconds))))} WHERE "TicketId"=uuid'{query[0][0]}'; """)
+        conn.commit()
+    else:
+        cur.execute(f"""INSERT INTO public."ParkingLog" ("TicketId", "CustomerId", "Date", "PlateNum", "EntryGateId", "CheckinTime", "CheckoutTime", "ExitGateId", "Status", "Duration", "Cash") VALUES(uuid'{uuid.uuid4()}', 'EGPCI-AAA01-0001', date'{str(datetime.datetime.now().date())}', '{Plate}','Main', '{time.strftime("%H:%M:%S", time.localtime())}', Null, Null, 'Parked', Null, Null);""")
+        conn.commit()
+    #If it is then update the time stamp, Exit Gate, Status & duration
+    #else add the Plate to the database
+
 def alpr(img):
     regions = ['in']
     response = requests.post('https://api.platerecognizer.com/v1/plate-reader/',
@@ -55,6 +89,7 @@ def alpr(img):
                                 headers={'Authorization': 'Token ec549d56a1930e6da1cbe3dccda9910bcb54072a'})
     resp_json = response.json()
     Plate = str(resp_json['results'][0]['plate']).upper()
+    parking_log(Plate)
     Vehicle = str(resp_json['results'][0]['vehicle']['type'])
     st.subheader("Bellow are the results of the prediction")
     st.text("Plate Number: {}".format(Plate))
