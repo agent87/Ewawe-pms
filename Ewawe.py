@@ -71,12 +71,12 @@ def parking_log(Plate):
     cur.execute(f""" select * from public."Auth_parkinglog" where "CustomerId" = 'EGPCI-AAA01-0001' and "PlateNum" = '{Plate}' and "Status" = 'Parked';""")
     query = cur.fetchall()
     if query:
-        elapsed = (datetime.datetime.now()- datetime.datetime.combine(query[0][2], query[0][5])) /60
+        elapsed = (time.time()- query[0][5]) /60
         #update Checkoutimte, status, cost  and duration
-        cur.execute(f""" UPDATE public."Auth_parkinglog" SET "CheckoutTime"='{time.strftime("%H:%M:%S", time.localtime())}', "ExitGateId"='Main', "Status"='Exited', "Duration"={int(str(elapsed.seconds))}, "Cash"={int(str(cost(int(elapsed.seconds))))} WHERE "TicketId"=uuid'{query[0][0]}'; """)
+        cur.execute(f""" UPDATE public."Auth_parkinglog" SET "CheckoutTime"='{time.time()}', "ExitGateId"='Main', "Status"='Exited', "Duration"={int(str(elapsed.seconds))}, "Cash"={int(str(cost(int(elapsed.seconds))))} WHERE "TicketId"=uuid'{query[0][0]}'; """)
         conn.commit()
     else:
-        cur.execute(f"""INSERT INTO public."Auth_parkinglog" ("TicketId", "CustomerId", "Date", "PlateNum", "EntryGateId", "CheckinTime", "CheckoutTime", "ExitGateId", "Status", "Duration", "Cash") VALUES(uuid'{uuid.uuid4()}', 'EGPCI-AAA01-0001', date'{str(datetime.datetime.now().date())}', '{Plate}','Main', '{time.strftime("%H:%M:%S", time.localtime())}', Null, Null, 'Parked', Null, Null);""")
+        cur.execute(f"""INSERT INTO public."Auth_parkinglog" ("TicketId", "CustomerId", "Date", "PlateNum", "EntryGateId", "CheckinTime", "CheckoutTime", "ExitGateId", "Status", "Duration", "Cash") VALUES(uuid'{uuid.uuid4()}', 'EGPCI-AAA01-0001', date'{str(datetime.datetime.now().date())}', '{Plate}','Main', '{time.time()}', Null, Null, 'Parked', Null, Null);""")
         conn.commit()
     #If it is then update the time stamp, Exit Gate, Status & duration
     #else add the Plate to the database
