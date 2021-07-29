@@ -125,12 +125,14 @@ def main():
             and discarded after the final results are displayed. ')
         f = st.file_uploader("Please Select to Upload an Image", type=['png', 'jpg', 'jpeg', 'tiff', 'gif'])
         if f is not None:
-            img = f.read()
-            st.image(img)
+            imgs = f.read()
+            for img in imgs:
+                st.image(img)
+                st.write('Please wait for the magic to happen! This may take up to a minute.')
+                alpr(img)
+
             #tfile = tempfile.NamedTemporaryFile(delete=True)
             #tfile.write(f.read())
-            st.write('Please wait for the magic to happen! This may take up to a minute.')
-            alpr(img)
     elif AppMode == SIDEBAR_OPTION_MEET_TEAM:
         st.title("Meet the team behind the system")
         first_column, second_column, third_column= st.beta_columns(3)
