@@ -82,7 +82,7 @@ def parking_log(Plate):
             cash = 1000
         
         #update Checkoutimte, status, cost  and duration
-        cur.execute(f""" UPDATE public."Auth_parkinglog" SET "CheckoutTime"= {time.time()}, "ExitGateId"='Main', "Status"='Exited', "Duration"={elapsed}, Cash={cash} WHERE "TicketId"=uuid'{query[0][0]}'; """)
+        cur.execute(f""" UPDATE public."Auth_parkinglog" SET "CheckoutTime"= {time.time()}, "ExitGateId"='Main', "Status"='Exited', "Duration"={elapsed}, "Cash"={cash} WHERE "TicketId"=uuid'{query[0][0]}'; """)
         conn.commit()
     else:
         cur.execute(f"""INSERT INTO public."Auth_parkinglog" ("TicketId", "CustomerId", "Date", "PlateNum", "EntryGateId", "CheckinTime", "CheckoutTime", "ExitGateId", "Status", "Duration", "Cash") VALUES(uuid'{uuid.uuid4()}', 'EGPCI-AAA01-0001', date'{str(datetime.datetime.now().date())}', '{Plate}','Main', {time.time()}, Null, Null, 'Parked', Null, Null);""")
