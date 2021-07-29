@@ -68,7 +68,7 @@ def cost(elapsed):
 
 def parking_log(Plate):
     #Check if the Plate is already in the database & Parked
-    cur.execute(f""" select * from public."ParkingLog" where "CustomerId" = 'EGPCI-AAA01-0001' and "PlateNum" = '{Plate}' and "Status" = 'Parked';""")
+    cur.execute(f""" select * from public."Auth_parkinglog" where "CustomerId" = 'EGPCI-AAA01-0001' and "PlateNum" = '{Plate}' and "Status" = 'Parked';""")
     query = cur.fetchall()
     if query:
         elapsed = (datetime.datetime.now()- datetime.datetime.combine(query[0][2], query[0][5])) /60
