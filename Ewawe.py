@@ -1,3 +1,4 @@
+from requests.api import request
 import streamlit as st
 import time
 import requests
@@ -10,11 +11,11 @@ cur = conn.cursor()
 
 
 SIDEBAR_OPTION_PROJECT_INFO = "Show Project Info"
-SIDEBAR_OPTION_DEMO_IMAGE = "Select a Demo Image"
-SIDEBAR_OPTION_UPLOAD_IMAGE = "Upload an Image"
+SIDEBAR_OPTION_VEHICLE_ENTRY = "Vehicle Entry"
+SIDEBAR_OPTION_VEHICLE_EXIT = "Vehicle Exit"
 SIDEBAR_OPTION_MEET_TEAM = "Meet the Team"
 
-SIDEBAR_OPTIONS = [SIDEBAR_OPTION_PROJECT_INFO, SIDEBAR_OPTION_DEMO_IMAGE, SIDEBAR_OPTION_UPLOAD_IMAGE, SIDEBAR_OPTION_MEET_TEAM]
+SIDEBAR_OPTIONS = [SIDEBAR_OPTION_PROJECT_INFO, SIDEBAR_OPTION_VEHICLE_ENTRY, SIDEBAR_OPTION_VEHICLE_EXIT, SIDEBAR_OPTION_MEET_TEAM]
 
 
 
@@ -90,7 +91,7 @@ def parking_log(Plate):
     #If it is then update the time stamp, Exit Gate, Status & duration
     #else add the Plate to the database
 
-def alpr(img):
+def alpr(img, flow):
     regions = ['in']
     response = requests.post('https://api.platerecognizer.com/v1/plate-reader/',
                                 data=dict(regions=regions),  # Optional
@@ -98,7 +99,19 @@ def alpr(img):
                                 headers={'Authorization': 'Token ec549d56a1930e6da1cbe3dccda9910bcb54072a'})
     resp_json = response.json()
     Plate = str(resp_json['results'][0]['plate']).upper()
-    parking_log(Plate)
+    
+    post_plate = requests.post('http://127.0.0.1:8000/api/post',
+                                data={
+                                    'plate_number': Plate,
+                                    'customer_id': 'EPMS-0001',
+                                    'time' : time.time(),
+                                    'flow' :  flow,
+                                    'gate' : 2
+
+                                },
+                                headers={'Authorization': 'Token ec549d56a1930e6da1cbe3dccda9910bcb54072a'})
+
+    #parking_log(Plate)
     Vehicle = str(resp_json['results'][0]['vehicle']['type'])
     st.subheader("Bellow are the results of the prediction")
     st.text("Plate Number: {}".format(Plate))
@@ -116,17 +129,26 @@ def main():
         st.title("Ewawe Parking Managment System")
         st.text("Welcome to the Ewawe PMS Project Info Page.")
         st.text("Enjoy")
-    elif AppMode == SIDEBAR_OPTION_DEMO_IMAGE:
-        startup_load()
-        st.title("Ewawe Parking Managment System")
-        st.title("Please Load Image")
-    elif AppMode == SIDEBAR_OPTION_UPLOAD_IMAGE:
+    elif AppMode == SIDEBAR_OPTION_VEHICLE_ENTRY:
+        st.title("Upload a Vehicle Entry Image")
         st.info('PRIVACY POLICY: uploaded images are never saved or stored. They are held entirely within memory for prediction \
             and discarded after the final results are displayed. ')
-        f = st.file_uploader("Please Select to Upload an Image", type=['png', 'jpg', 'jpeg', 'tiff', 'gif'])
+        f = st.file_uploader("Please Select to Upload an Image", type=['png', 'jpg', 'jpeg'])
         if f is not None:
             img = f.read()
-            st.image(img)
+            st.image(img, 'entry')
+            #tfile = tempfile.NamedTemporaryFile(delete=True)
+            #tfile.write(f.read())
+            st.write('Please wait for the magic to happen! This may take up to a minute.')
+            alpr(img, 'entry')
+    elif AppMode == SIDEBAR_OPTION_VEHICLE_EXIT:
+        st.title("Upload a Vehicle Exit Image")
+        st.info('PRIVACY POLICY: uploaded images are never saved or stored. They are held entirely within memory for prediction \
+            and discarded after the final results are displayed. ')
+        f = st.file_uploader("Please Select to Upload an Image", type=['png', 'jpg', 'jpeg'])
+        if f is not None:
+            img = f.read()
+            st.image(img, 'exit')
             #tfile = tempfile.NamedTemporaryFile(delete=True)
             #tfile.write(f.read())
             st.write('Please wait for the magic to happen! This may take up to a minute.')
