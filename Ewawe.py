@@ -72,7 +72,7 @@ def alpr(img):
     st.subheader("Bellow are the results of the prediction")
     st.text("Plate Number: {}".format(Plate))
     st.text('Vehicle Type: {}'.format(Vehicle))
-
+""
 
 def main():
     st.sidebar.warning('\
